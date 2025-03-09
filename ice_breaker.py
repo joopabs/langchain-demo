@@ -1,9 +1,11 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+
 # from langchain_ollama import ChatOllama
 from langchain.schema import StrOutputParser
 from dotenv import load_dotenv
 from rich import print
+
 
 def create_prompt_template():
     summary_template = """
@@ -16,10 +18,12 @@ def create_prompt_template():
     """
     return PromptTemplate.from_template(summary_template)
 
+
 def create_langchain_pipeline(llm):
     prompt_template = create_prompt_template()
     output_parser = StrOutputParser()
     return prompt_template | llm | output_parser
+
 
 def process_information_streamed(information):
     """Processes the given information using the LangChain pipeline, streaming the result."""
@@ -29,8 +33,9 @@ def process_information_streamed(information):
     chain = prompt_template | llm
 
     for chunk in chain.stream(input={"information": information}):
-        if hasattr(chunk, 'content'):
+        if hasattr(chunk, "content"):
             print(chunk.content, end="", flush=True)
+
 
 def main():
     """Main function to execute the information processing."""
@@ -48,6 +53,7 @@ def main():
 
     result = process_information_streamed(information)
     print(result)
+
 
 if __name__ == "__main__":
     load_dotenv()
