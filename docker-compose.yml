@@ -1,0 +1,35 @@
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    deploy:
+      resources:
+        limits:
+          cpus: '4' # Limit CPU usage to avoid overloading the system.
+          memory: 12G # Limit memory usage to leave room for the OS and other apps.
+        reservations:
+          cpus: '2' # Reserve a minimum amount of CPU resources.
+          memory: 8G # Reserve a minimum amount of memory resources.
+    restart: always
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://localhost:11434
+    volumes:
+      - open-webui:/app/backend/data
+    restart: always
+    depends_on:
+      - ollama
+
+volumes:
+  ollama:
+  open-webui:
+
+# Run this in terminal to pull & run a model in the Ollama container (i.e. llama3): docker exec -it ollama ollama run llama3
