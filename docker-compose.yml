@@ -7,13 +7,24 @@ services:
     ports:
       - "11434:11434"
     deploy:
+#      resources:
+#        limits:
+#          cpus: '4' # Limit CPU usage to avoid overloading the system.
+#          memory: 12G # Limit memory usage to leave room for the OS and other apps.
+#        reservations:
+#          cpus: '2' # Reserve a minimum amount of CPU resources.
+#          memory: 8G # Reserve a minimum amount of memory resources.
       resources:
         limits:
-          cpus: '4' # Limit CPU usage to avoid overloading the system.
-          memory: 12G # Limit memory usage to leave room for the OS and other apps.
+          cpus: "16" # Using 16 of the 24 cores
+          memory: 24G # Allocating 24GB of RAM
         reservations:
-          cpus: '2' # Reserve a minimum amount of CPU resources.
-          memory: 8G # Reserve a minimum amount of memory resources.
+          cpus: "8" # Reserving 8 cores
+          memory: 16G # Reserving 16GB of RAM
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
     restart: always
   openwebui:
     image: ghcr.io/open-webui/open-webui:main
