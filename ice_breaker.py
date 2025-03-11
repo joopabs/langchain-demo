@@ -11,9 +11,9 @@ from third_parties.linkedin import scrape_linkedin_profile
 
 def create_prompt_template():
     summary_template = """
-        You are a helpful assistant that understand JSON file format,
+        You are a helpful assistant that knows how to extract and infer useful data from JSON,
         Given the following scraped linkedin profile information:
-        ```{information}```
+        {information}
 
         Please create the following:
         1. A short summary of the person.
