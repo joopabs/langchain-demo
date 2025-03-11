@@ -1,67 +1,78 @@
-from langchain_core.prompts import PromptTemplate
-
-# from langchain_openai import ChatOpenAI
-
-from langchain_ollama import ChatOllama
-from langchain.schema import StrOutputParser
+import logging
 from dotenv import load_dotenv
 from rich import print
+from langchain_core.prompts import PromptTemplate
+from langchain.schema import StrOutputParser
 from third_parties.linkedin import scrape_linkedin_profile
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def create_prompt_template():
-    summary_template = """
-        You are a helpful assistant that knows how to extract useful data from JSON,
-        Given the following text:
-        {information}
+LLM_PROVIDER = "ollama"  # Change this to different value switch providers
 
-        Please create the following:
-        1. Short summary of the person.
-        2. Two interesting facts about them.
-        
-        Kindly provide the answers directly, without any additional context. 
+
+def get_llm(temperature: int = 0):
     """
-    return PromptTemplate.from_template(summary_template)
+    Returns an instance of the desired LLM based on the LLM_PROVIDER constant.
+    """
+    if LLM_PROVIDER == "openai":
+        from langchain_openai import ChatOpenAI
+
+        logger.info("Using ChatOpenAI as LLM provider")
+        return ChatOpenAI(temperature=temperature, model="gpt-3.5-turbo")
+    else:
+        from langchain_ollama import ChatOllama
+
+        logger.info("Using ChatOllama as LLM provider")
+        return ChatOllama(temperature=temperature, model="llama3")
 
 
-def create_langchain_pipeline(llm):
-    prompt_template = create_prompt_template()
-    output_parser = StrOutputParser()
-    return prompt_template | llm | output_parser
+# Constant for the summary prompt template
+SUMMARY_PROMPT_TEMPLATE = """
+You are a helpful assistant that knows how to extract useful data from JSON --
+Given the following data from a LinkedIn profile:
+{information}
+
+Please create the following:
+1. A short summary of the person.
+2. Two interesting facts about them.
+
+Kindly provide the answers directly, without any additional context.
+"""
 
 
-def process_information_streamed(information):
-    """Processes the given information using the LangChain pipeline, streaming the result."""
-    # llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
-    llm = ChatOllama(temperature=0, model="llama3")
-    prompt_template = create_prompt_template()
-    chain = prompt_template | llm
+def get_prompt_template():
+    """Creates and returns a prompt template based on the summary prompt."""
+    return PromptTemplate.from_template(SUMMARY_PROMPT_TEMPLATE)
 
-    for chunk in chain.stream(input={"information": information}):
+
+def build_pipeline(llm, with_output_parser: bool = True):
+    """
+    Builds and returns a LangChain pipeline.
+    If with_output_parser is True, the pipeline will include the output parser.
+    """
+    prompt_template = get_prompt_template()
+    if with_output_parser:
+        output_parser = StrOutputParser()
+        return prompt_template | llm | output_parser
+    return prompt_template | llm
+
+
+def stream_information_processing(information: str):
+    """Processes the information using the LangChain pipeline and streams the result."""
+    llm = get_llm(temperature=0)
+    pipeline = build_pipeline(llm, with_output_parser=False)
+    for chunk in pipeline.stream(input={"information": information}):
         if hasattr(chunk, "content"):
             print(chunk.content, end="", flush=True)
 
 
 def main():
-    """Main function to execute the information processing."""
-    # print("Hello Langchain!")
-
-    # information = """
-    # Elon Reeve Musk (June 28, 1971) is a businessman known for his key roles in Tesla, Inc., SpaceX, and Twitter (which he rebranded as X). Since 2025, he has been a senior advisor to United States president Donald Trump and the de facto head of the Department of Government Efficiency (DOGE). Musk is the wealthiest person in the world; as of March 2025, Forbes estimates his net worth to be US$343 billion.
-    #
-    # Born to a prominent family in Pretoria, South Africa, Musk emigrated to Canada in 1989 and acquired its citizenship though his mother. He moved to the U.S. and graduated from the University of Pennsylvania before moving to California to pursue business ventures. In 1995, Musk co-founded the software company Zip2. After its sale in 1999, he co-founded X.com, an online payment company that later merged to form PayPal, which was acquired by eBay in 2002 for $1.5 billion. That year, Musk also became a U.S. citizen.
-    #
-    # In 2002, Musk founded SpaceX and became its CEO and chief engineer. The company has since led innovations in reusable rockets and commercial spaceflight. In 2004, Musk joined Tesla, Inc., as an early investor, and became its CEO and product architect in 2008; it has become a market leader in electric vehicles. In 2015, he co-founded OpenAI to advance artificial intelligence research, but left its board in 2018. In 2016, Musk co-founded Neuralink, a company focused on brain–computer interfaces, and in 2017 launched the Boring Company, which aims to develop tunnel transportation. Musk was named Time magazine's Person of the Year in 2021. In 2022, he acquired Twitter, implementing significant changes and rebranding it as X in 2023. In January 2025, he was appointed head of Trump's newly created DOGE.
-    #
-    # Musk's political activities and views have made him a polarizing figure. He has been criticized for making unscientific and misleading statements, including COVID-19 misinformation and promoting conspiracy theories. His acquisition of Twitter (now X) was controversial due to a subsequent increase in hate speech and the spread of misinformation on the service. He has engaged in political activities in several countries, including as a vocal and financial supporter of Trump. Musk was the largest donor in the 2024 U.S. presidential election and is a supporter of global far-right figures, causes, and political parties.
-    # """
-
-    information = scrape_linkedin_profile(
-        linkedin_profile_url="https://www.linkedin.com/in/julius-p-0052794/",
-        mock=True,
-    )
-
-    process_information_streamed(information)
+    """Main function to scrape a LinkedIn profile and process the extracted information."""
+    linkedin_url = "https://www.linkedin.com/in/julius-p-0052794/"
+    information = scrape_linkedin_profile(linkedin_profile_url=linkedin_url, mock=True)
+    stream_information_processing(information)
 
 
 if __name__ == "__main__":
