@@ -1,7 +1,8 @@
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
 
-# from langchain_ollama import ChatOllama
+# from langchain_openai import ChatOpenAI
+
+from langchain_ollama import ChatOllama
 from langchain.schema import StrOutputParser
 from dotenv import load_dotenv
 from rich import print
@@ -10,8 +11,9 @@ from third_parties.linkedin import scrape_linkedin_profile
 
 def create_prompt_template():
     summary_template = """
-        Given the following linkedin information about a person:
-        {information}
+        You are a helpful assistant that understand JSON file format,
+        Given the following scraped linkedin profile information:
+        ```{information}```
 
         Please create the following:
         1. A short summary of the person.
@@ -28,8 +30,9 @@ def create_langchain_pipeline(llm):
 
 def process_information_streamed(information):
     """Processes the given information using the LangChain pipeline, streaming the result."""
-    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
-    # llm = ChatOllama(model="llama3")
+    # llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
+    # llm = ChatOllama(model="mistral")
+    llm = ChatOllama(model="llama3")
     prompt_template = create_prompt_template()
     chain = prompt_template | llm
 
@@ -57,8 +60,7 @@ def main():
         mock=True,
     )
 
-    result = process_information_streamed(information)
-    print(result)
+    process_information_streamed(information)
 
 
 if __name__ == "__main__":
