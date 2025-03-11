@@ -1,9 +1,8 @@
 import os
-import json
+
 import requests
 from dotenv import load_dotenv
 from rich.console import Console
-from rich.syntax import Syntax
 
 load_dotenv()
 

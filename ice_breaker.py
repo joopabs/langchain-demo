@@ -11,12 +11,12 @@ from third_parties.linkedin import scrape_linkedin_profile
 
 def create_prompt_template():
     summary_template = """
-        You are a helpful assistant that knows how to extract and infer useful data from JSON,
-        Given the following scraped linkedin profile information:
+        You are a helpful assistant that knows how to extract and infer useful data from JSON text,
+        Given the following JSON text:
         {information}
 
         Please create the following:
-        1. A short summary of the person.
+        1. A short summary of the person, provide the name.
         2. Two interesting facts about them.
     """
     return PromptTemplate.from_template(summary_template)
@@ -31,8 +31,8 @@ def create_langchain_pipeline(llm):
 def process_information_streamed(information):
     """Processes the given information using the LangChain pipeline, streaming the result."""
     # llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
-    # llm = ChatOllama(model="mistral")
-    llm = ChatOllama(model="llama3")
+    # llm = ChatOllama(temperature=0.3, model="mistral")
+    llm = ChatOllama(temperature=0.5, model="llama3")
     prompt_template = create_prompt_template()
     chain = prompt_template | llm
 
