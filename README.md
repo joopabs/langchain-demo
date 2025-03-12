@@ -1,6 +1,16 @@
 # langchain-demo
 
-A Python project that uses the LangChain framework and different Chat models to demo langchain capabilities.
+A Python project that uses the LangChain framework and various Chat models to demo LangChain capabilities.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Usage](#usage)
+- [Docker Compose and Containerized Services](#docker-compose-and-containerized-services)
+- [Dependencies](#dependencies)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
 
@@ -13,9 +23,7 @@ A Python project that uses the LangChain framework and different Chat models to 
 
 2. **Set Up Your Python Environment**
 
-   Ensure you have Python 3.13.2 installed.
-
-   This project uses Pipenv for dependency management. Install the dependencies with:
+   Ensure you have Python 3.13.2 installed. This project uses Pipenv for dependency management. Install the dependencies with:
 
    ```bash
    pipenv install
@@ -28,20 +36,39 @@ A Python project that uses the LangChain framework and different Chat models to 
 
 ## Usage
 
-To execute the information processing script:
+To execute the information processing script, run:
 
 ```bash
 python [python_file]
 ```
 
-The script will process the provided information and stream output to the console.
+The script will process the provided information and stream the output to the console.
 
-## Docker Compose
+## Docker Compose and Containerized Services
 
-A `docker-compose.yml` file is included if you require additional services (e.g., model serving or a web UI) in your workflow. To start the services defined in Docker Compose:
+For those who require additional services such as model serving or a web UI, a `docker-compose.yml` file has been included. This configuration sets up an Ollama container with specific resource allocations:
+
+- **Ollama Service Details:**
+   - **Image:** Uses the Ollama image.
+   - **Resource Limits:**
+      - CPUs: 16 (of 24 available cores)
+      - Memory: 24GB
+   - **Resource Reservations:**
+      - CPUs: 8
+      - Memory: 16GB
+      - GPU: Configured to use an NVIDIA GPU (if available)
+   - **Restart Policy:** Always
+
+To start the services defined in Docker Compose, run:
 
 ```bash
 docker-compose up -d
+```
+
+To pull and run a model inside the Ollama container (for example, "llama3"), execute:
+
+```bash
+docker exec -it ollama ollama run llama3
 ```
 
 ## Dependencies
@@ -64,4 +91,4 @@ Contributions are welcome! If you encounter any issues or have suggestions, plea
 
 ## License
 
-This project is provided for educational purposes. Please update this section with your chosen license.
+This project is licensed under the GPL.
