@@ -20,7 +20,7 @@ def get_llm(temperature: int = 0):
         from langchain_openai import ChatOpenAI
 
         logger.info("Using ChatOpenAI as LLM provider")
-        return ChatOpenAI(temperature=temperature, model="gpt-3.5-turbo")
+        return ChatOpenAI(temperature=temperature, model="gpt-4o-mini")
     else:
         from langchain_ollama import ChatOllama
 

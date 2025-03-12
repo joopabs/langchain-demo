@@ -12,6 +12,7 @@ python-dotenv = "*"
 rich = "*"
 langchain-ollama = "*"
 black = "*"
+langchain-google-genai = "*"
 
 [dev-packages]
 
