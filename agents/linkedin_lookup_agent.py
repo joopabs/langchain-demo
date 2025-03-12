@@ -1,35 +1,17 @@
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
-from tools.tools import get_profile_url_tavily
+from langchain import hub
+from langchain.agents import create_react_agent, AgentExecutor
 from langchain_core.prompts import PromptTemplate
 from langchain_core.tools import Tool
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain import hub
 
-# Constants for prompt template and tool description
+from tools.llm_provider import get_llm  # Import the shared LLM provider
+from tools.tools import get_profile_url_tavily
+
 LINKEDIN_PROMPT_TEMPLATE = """
 You are a helpful assistant that knows how to look up information about people on LinkedIn.
 Given the name {query}, please provide the exact LinkedIn profile page URL.
 Your answer must be a single, valid URL (starting with http:// or https://) and nothing else.
 """
-
-
-def get_llm(llm_name: str):
-    """
-    Return an instance of the chosen language model.
-    Supported values: 'ollama', 'chatopenai', 'gemini'
-    """
-    llm_name = llm_name.lower()
-    if llm_name == "ollama":
-        return ChatOllama(temperature=0, model="mistral")
-    elif llm_name == "openai":
-        return ChatOpenAI(temperature=0, model="gpt-4o-mini")
-    elif llm_name == "gemini":
-        return ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
-    else:
-        raise ValueError(f"Unsupported LLM choice: {llm_name}")
 
 
 def build_agent_executor(llm, tools):
@@ -38,9 +20,9 @@ def build_agent_executor(llm, tools):
     return AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 
-def lookup(query: str, llm_choice: str = "gemini") -> str:
+def lookup(query: str) -> str:
     load_dotenv()  # Ensure environment variables are loaded
-    llm = get_llm(llm_choice)
+    llm = get_llm(temperature=0)
 
     prompt_template = PromptTemplate.from_template(LINKEDIN_PROMPT_TEMPLATE)
     tools_for_agent = [
@@ -60,6 +42,5 @@ def lookup(query: str, llm_choice: str = "gemini") -> str:
 
 
 if __name__ == "__main__":
-    # Example usage; choose between 'gemini', 'ollama', or 'openai'
-    linkedin_url = lookup(query="Udemy's Eden Marco Linkedin Profile", llm_choice="ollama")
+    linkedin_url = lookup(query="Udemy's Eden Marco Linkedin Profile")
     print(linkedin_url)
