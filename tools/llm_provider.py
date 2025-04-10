@@ -1,33 +1,56 @@
 import logging
-import os
 
 from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 
 load_dotenv()  # Ensure environment variables are loaded
 logger = logging.getLogger(__name__)
 
 
-def get_llm(temperature: int = 0):
+def get_llm(temperature: int = 0, provider: str = "ollama"):
     """
-    Returns an instance of the chosen language model based on the MODEL_PROVIDER
-    environment variable.
-    Supported providers: 'ollama', 'openai', 'gemini'
+    Create and return an LLM provider based on the specified provider name.
+
+    Args:
+        temperature: The sampling temperature to use for the model (default: 0)
+        provider: The name of the LLM provider to use (default: "ollama")
+
+    Returns:
+        An initialized LLM provider instance
+
+    Raises:
+        ValueError: If the specified provider is not supported
     """
-    provider = os.getenv("MODEL_PROVIDER", "gemini").lower()
-    if provider == "ollama":
-        from langchain_ollama import ChatOllama
+    # Provider configuration mapping
+    provider_configs = {
+        "mistral": {
+            "class": ChatOllama,
+            "model": "mistral",
+            "name": "ChatOllama"
+        },
+        "llama3": {
+            "class": ChatOllama,
+            "model": "llama3",
+            "name": "ChatOllama"
+        },
+        "openai": {
+            "class": ChatOpenAI,
+            "model": "gpt-4o-mini",
+            "name": "ChatOpenAI"
+        },
+        "gemini": {
+            "class": ChatGoogleGenerativeAI,
+            "model": "gemini-2.0-flash",
+            "name": "ChatGoogleGenerativeAI"
+        }
+    }
 
-        logger.info("Using ChatOllama as LLM provider")
-        return ChatOllama(temperature=temperature, model="mistral")
-    elif provider == "openai":
-        from langchain_openai import ChatOpenAI
-
-        logger.info("Using ChatOpenAI as LLM provider")
-        return ChatOpenAI(temperature=temperature, model="gpt-4o-mini")
-    elif provider == "gemini":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-
-        logger.info("Using ChatGoogleGenerativeAI as LLM provider")
-        return ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=temperature)
-    else:
+    if provider not in provider_configs:
         raise ValueError(f"Unsupported LLM choice: {provider}")
+
+    config = provider_configs[provider]
+    logger.info(f"Using {config['name']} as LLM provider")
+
+    return config["class"](temperature=temperature, model=config["model"])

@@ -1,4 +1,6 @@
 import logging
+import os
+
 from dotenv import load_dotenv
 from rich import print
 from langchain_core.prompts import PromptTemplate
@@ -6,6 +8,8 @@ from langchain.schema import StrOutputParser
 from third_parties.linkedin import scrape_linkedin_profile
 
 from tools.llm_provider import get_llm  # Use the shared LLM provider
+
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -37,7 +41,7 @@ def build_pipeline(llm, with_output_parser: bool = True):
 
 
 def stream_information_processing(information: str):
-    llm = get_llm(temperature=0)
+    llm = get_llm(temperature=0, provider=os.getenv("MODEL_PROVIDER"))
     pipeline = build_pipeline(llm, with_output_parser=False)
     for chunk in pipeline.stream(input={"information": information}):
         if hasattr(chunk, "content"):

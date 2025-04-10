@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from langchain import hub
 from langchain.agents import create_react_agent, AgentExecutor
@@ -13,6 +15,7 @@ Given the name {query}, please provide the exact LinkedIn profile page URL.
 Your answer must be a single, valid URL (starting with http:// or https://) and nothing else.
 """
 
+load_dotenv()
 
 def build_agent_executor(llm, tools):
     react_prompt = hub.pull("hwchase17/react")
@@ -22,7 +25,7 @@ def build_agent_executor(llm, tools):
 
 def lookup(query: str) -> str:
     load_dotenv()  # Ensure environment variables are loaded
-    llm = get_llm(temperature=0)
+    llm = get_llm(temperature=0, provider=os.getenv("MODEL_PROVIDER"))
 
     prompt_template = PromptTemplate.from_template(LINKEDIN_PROMPT_TEMPLATE)
     tools_for_agent = [
